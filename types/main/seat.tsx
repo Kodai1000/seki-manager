@@ -3,7 +3,7 @@ export type Seat = {
     name: string,
     x: number,
     y: number,
-    width_x: number,
-    width_y: number,
+    width: number,
+    height: number,
     allocate_ids: number[]
 }
