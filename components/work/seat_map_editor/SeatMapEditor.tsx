@@ -3,8 +3,10 @@ import Image from "next/image";
 import { Stage, Layer, Rect, Group, Transformer, Text } from "react-konva";
 import Konva from "konva";
 import { Project } from "@/types/main/project";
+import { Object } from "@/types/main/object";
 import { useState, useRef, useEffect } from "react";
 import { Seat } from "@/types/main/seat";
+import { Preahvihear } from "next/font/google";
 
 type Props = {
     project: Project
@@ -46,6 +48,28 @@ export default function SeatMapEditor (props: Props) {
         if (!position) return;
         if (tool == "seat"){
             setDragStartPosition({x: position.x, y:position.y})
+        }
+        if (tool=="text"){
+            const text = window.prompt();
+            if (!text) return;
+            const prev_project = props.project;
+            const newId = prev_project.objects.length === 0 ? 1 : Math.max(...prev_project.objects.map(seat => seat.id)) + 1;
+            setProject({
+                ...prev_project,
+                objects: [
+                    ...props.project.objects,
+                    {
+                        id: newId,
+                        text,
+                        type: "text",
+                        x: position.x,
+                        y: position.y,
+                        font_size: 16,
+                        width: null,
+                        height: null
+                    }
+                ]
+            })
         }
     }
 
@@ -101,7 +125,7 @@ export default function SeatMapEditor (props: Props) {
     
     function drawSeat (SeatObject: Seat){
         return (
-            <Group key={SeatObject.id}
+            <Group key={`seat-${SeatObject.id}`}
                     x={SeatObject.x}
                     y={SeatObject.y}
                     width={SeatObject.width}
@@ -176,6 +200,47 @@ export default function SeatMapEditor (props: Props) {
         );
     }
 
+    function drawObject(object: Object) {
+        return (
+            <Group
+                key={`object-${object.id}`}
+                x={object.x}
+                y={object.y}
+                draggable
+                onClick={(e) => {
+                    setSelectedId(object.id);
+                    setSelectedType(object.type);
+                    trRef.current?.nodes([e.currentTarget]);
+                }}
+                onDragEnd={(e) => {
+                    const node = e.currentTarget;
+
+                    setProject({
+                        ...props.project,
+                        objects: props.project.objects.map((obj) => {
+                            if (obj.id !== object.id) {
+                                return obj;
+                            }
+
+                            return {
+                                ...obj,
+                                x: node.x(),
+                                y: node.y(),
+                            };
+                        }),
+                    });
+                }}
+            >
+                <Text
+                    text={object.text}
+                    fontSize={object.font_size}
+                />
+            </Group>
+        );
+    }
+
+
+
 
     return (
         <div className="space-4 overflow-auto rounded border border-gray-300 bg-gray-50">
@@ -202,6 +267,7 @@ export default function SeatMapEditor (props: Props) {
             >
                 <Layer>
                     {props.project.seats.map((seat)=>{return drawSeat(seat)})}
+                    {props.project.objects.map((object)=>{return drawObject(object)})}
                     {
                         (dragRect != null) ? (
                             <Rect x={dragRect.x} y={dragRect.y} width={dragRect.width} height={dragRect.height} stroke="blue"/>

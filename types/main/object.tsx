@@ -1,7 +1,7 @@
 export type Object = {
     id: number,
     type: string,
-    text: string,
+    text: string | null,
     x: number,
     y: number,
     width: number |null,
