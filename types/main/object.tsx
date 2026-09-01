@@ -6,5 +6,6 @@ export type Object = {
     y: number,
     width: number |null,
     height: number | null,
-    font_size: number
+    font_size: number,
+    isDelete: boolean,
 }
