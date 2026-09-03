@@ -1,5 +1,5 @@
 export type Object = {
-    id: number,
+    id: string,
     type: string,
     text: string | null,
     x: number,

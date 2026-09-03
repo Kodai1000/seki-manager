@@ -3,7 +3,8 @@
 import { Project } from "@/types/main/project";
 import SeatMapEditor from "@/components/work/seat_map_editor/SeatMapEditor";
 import { useState, createContext,  type Dispatch, type SetStateAction } from "react";
-import TabMenu from "@/components/work/seat_map_editor/TabMenu";
+import TabMenu from "@/components/shared/TabMenu";
+import ParticipantEditor from "@/components/work/participant_editor/ParticipantEditor";
 
 export const tabContext = createContext({
     tabIndex: 0,
@@ -28,6 +29,12 @@ export default function Work(){
                         <div>
                             <h1>作業画面</h1>
                             <SeatMapEditor project={project} setProject={setProject}/>
+                        </div>
+                    ): null}
+                    {(tabIndex==1) ? (
+                        <div>
+                            <h1>参加者編集</h1>
+                            <ParticipantEditor project={project} setProject={setProject}/>
                         </div>
                     ): null}
                 </div>

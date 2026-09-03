@@ -1,4 +1,7 @@
+import { Attribute } from "./attribute";
+
 export type Participant = {
-    id: number,
-    name: string
+    id: string,
+    name: string,
+    attributes: Attribute[],
 }
