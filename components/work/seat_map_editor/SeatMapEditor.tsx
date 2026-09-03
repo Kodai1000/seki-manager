@@ -6,6 +6,7 @@ import { Project } from "@/types/main/project";
 import { Object } from "@/types/main/object";
 import { useState, useRef, useEffect } from "react";
 import { Seat } from "@/types/main/seat";
+import getParticipantData from "@/lib/getParticipantData";
 
 type Props = {
     project: Project
@@ -197,6 +198,8 @@ export default function SeatMapEditor (props: Props) {
                         fill={SeatObject.color || "blue"}
                     />
                     <Text key={`text-${SeatObject.id}`} text={SeatObject.name || "席"+String(SeatObject.id)} fontSize={18}/>
+                    <Text key={`text-${SeatObject.id}-b`} y={22} text={getParticipantData(props.project, SeatObject.allocate_ids[0]).name || SeatObject.name} fontSize={18}/>
+                        
                 </Group>
             );
     }
@@ -307,6 +310,36 @@ export default function SeatMapEditor (props: Props) {
                                         <option value="red">赤</option>
                                         <option value="green">緑</option>
                                         <option value="orange">オレンジ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block">割り当て</label>
+                                    <select 
+                                        value={selectedSeat.allocate_ids[0] ?? ""}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // 文字列のidをそのまま配列に格納（空文字の場合は空配列）
+                                            const newAllocateIds = value === "" ? [] : [value];
+                                            
+                                            setProject({
+                                                ...props.project,
+                                                seats: props.project.seats.map(s => 
+                                                    s.id === selectedSeat.id 
+                                                        ? { ...s, allocate_ids: newAllocateIds } 
+                                                        : s
+                                                )
+                                            });
+                                        }}
+                                        className="border px-2 py-1 rounded text-sm"
+                                    >
+                                        <option value="">未選択</option>
+                                        {props.project.participants.map((participant) => {
+                                            return (
+                                                <option key={participant.id} value={participant.id}>
+                                                    {participant.name}
+                                                </option>
+                                            )
+                                        })}
                                     </select>
                                 </div>
                                 <div className="ml-auto self-end">
