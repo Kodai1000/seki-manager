@@ -4,7 +4,8 @@ import { Project } from "@/types/main/project";
 import SeatMapEditor from "@/components/work/seat_map_editor/SeatMapEditor";
 import { useState, createContext,  type Dispatch, type SetStateAction } from "react";
 import TabMenu from "@/components/shared/TabMenu";
-import ParticipantEditor from "@/components/work/participant_editor/ParticipantEditor";
+import ParticipantsEditor from "@/components/work/participants_editor/ParticipantsEditor";
+import ConditionsEditor from "@/components/work/conditions_editor/ConditionsEditor";
 
 export const tabContext = createContext({
     tabIndex: 0,
@@ -16,7 +17,8 @@ export default function Work(){
     const initial_project : Project = {
         seats: [],
         participants: [],
-        objects: []
+        objects: [],
+        conditions: []
     }
     const [project, setProject] = useState<Project>(initial_project);
     const [tabIndex, setTabIndex] = useState(0);
@@ -34,9 +36,18 @@ export default function Work(){
                     {(tabIndex==1) ? (
                         <div>
                             <h1>参加者編集</h1>
-                            <ParticipantEditor project={project} setProject={setProject}/>
+                            <ParticipantsEditor project={project} setProject={setProject}/>
                         </div>
                     ): null}
+
+                    {(tabIndex==2) ? (
+                        <div>
+                            <h1>参加者編集</h1>
+                            <ConditionsEditor project={project} setProject={setProject}/>
+                        </div>
+                    ): null}
+
+                    
                 </div>
             </tabContext.Provider>
         </div>

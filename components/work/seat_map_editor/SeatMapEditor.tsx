@@ -198,8 +198,12 @@ export default function SeatMapEditor (props: Props) {
                         fill={SeatObject.color || "blue"}
                     />
                     <Text key={`text-${SeatObject.id}`} text={SeatObject.name || "席"+String(SeatObject.id)} fontSize={18}/>
-                    <Text key={`text-${SeatObject.id}-b`} y={22} text={getParticipantData(props.project, SeatObject.allocate_ids[0]).name || SeatObject.name} fontSize={18}/>
-                        
+                    <Text 
+                        key={`text-${SeatObject.id}-b`} 
+                        y={22} 
+                        text={getParticipantData(props.project, SeatObject.allocate_ids[0])?.name || ""} 
+                        fontSize={18}
+                    />                        
                 </Group>
             );
     }

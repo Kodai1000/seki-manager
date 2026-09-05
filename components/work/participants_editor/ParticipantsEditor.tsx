@@ -37,6 +37,26 @@ export default function ParticipantEditor(props: Props) {
         });
     };
 
+    // 属性を削除
+    const removeAttribute = (participantId: string, attributeId: string) => {
+        const newParticipants = project.participants.map((participant) => {
+            if (participant.id === participantId) {
+                return {
+                    ...participant,
+                    attributes: participant.attributes.filter(
+                        (attribute) => attribute.id !== attributeId
+                    ),
+                };
+            }
+            return participant;
+        });
+
+        setProject({
+            ...project,
+            participants: newParticipants,
+        });
+    };
+
     return (
         <div>
             <h1>参加者編集</h1>
@@ -78,18 +98,33 @@ export default function ParticipantEditor(props: Props) {
                                 削除
                             </button>
                         </div>
-                        {/* mt-4 で上にスペースを空けています（好みに合わせて mt-2 や mt-6 に調整可能です） */}
+                        
                         <hr className="mt-4 border-gray-300" />
-                        <div>
-                            {participant.attributes.map((attribute,index)=>{
+                        
+                        {/* 属性一覧と削除ボタン */}
+                        <div className="mt-2 space-y-2 flex space-x-4">
+                            {participant.attributes.map((attribute) => {
                                 return (
-                                    <div key={attribute.id}>
-                                        <p>{attribute.name}</p>
+                                    <div 
+                                        key={attribute.id} 
+                                        className="bg-white p-2 rounded border space-x-4"
+                                    >
+                                        <span className="text-blue-500">#{attribute.name}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAttribute(participant.id, attribute.id)}
+                                            className="rounded bg-red-400 px-2 py-1 text-white text-xs"
+                                        >
+                                            x
+                                        </button>
                                     </div>
-                                )
+                                );
                             })}
                         </div>
-                        <AttributeAdder project={project} setProject={setProject} participantId={participant.id}/>
+
+                        <div className="mt-2">
+                            <AttributeAdder project={project} setProject={setProject} participantId={participant.id}/>
+                        </div>
                     </div>
                 );
             })}
