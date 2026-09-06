@@ -7,6 +7,7 @@ import { Object } from "@/types/main/object";
 import { useState, useRef, useEffect } from "react";
 import { Seat } from "@/types/main/seat";
 import getParticipantData from "@/lib/getParticipantData";
+import { seat_colors } from "@/data/seat_colors";
 
 type Props = {
     project: Project
@@ -310,10 +311,9 @@ export default function SeatMapEditor (props: Props) {
                                         }}
                                         className="border px-2 py-1 rounded text-sm"
                                     >
-                                        <option value="blue">青</option>
-                                        <option value="red">赤</option>
-                                        <option value="green">緑</option>
-                                        <option value="orange">オレンジ</option>
+                                        {seat_colors.map((seat_color)=>(
+                                            <option key={seat_color.color} value={seat_color.color}>{seat_color.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>
@@ -404,14 +404,16 @@ export default function SeatMapEditor (props: Props) {
             </div>
             
             <Stage
-                width={640}
-                height={480}
+                width={1280}
+                height={720}
                 onMouseDown={handleStageMouseDown}
                 onMouseMove={handleStageMouseMove}
                 onMouseUp={handleStageMouseUp}
                 className="border bg-white rounded shadow"
             >
-                <Layer>
+                <Layer
+                    width={1280}
+                    height={720}>
                     {props.project.seats.map((seat)=>{return drawSeat(seat)})}
                     {props.project.objects.map((object)=>{return drawObject(object)})}
                     {

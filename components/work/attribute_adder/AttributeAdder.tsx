@@ -23,7 +23,7 @@ export default function AttributeAdder(props: Props) {
 
                 // 同じ属性名がすでに存在するか確認
                 isDuplicate = participant.attributes.some(
-                    (attribute) => attribute.name === name
+                    (attribute) => attribute === name
                 );
 
                 // 重複していたら何も変更しない
@@ -31,10 +31,7 @@ export default function AttributeAdder(props: Props) {
                     return participant;
                 }
 
-                const newAttribute: Attribute = {
-                    id: crypto.randomUUID(),
-                    name: name,
-                };
+                const newAttribute: string = name;
 
                 return {
                     ...participant,

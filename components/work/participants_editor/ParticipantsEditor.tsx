@@ -38,13 +38,13 @@ export default function ParticipantEditor(props: Props) {
     };
 
     // 属性を削除
-    const removeAttribute = (participantId: string, attributeId: string) => {
+    const removeAttribute = (participantId: string, removedAttribute: string) => {
         const newParticipants = project.participants.map((participant) => {
             if (participant.id === participantId) {
                 return {
                     ...participant,
                     attributes: participant.attributes.filter(
-                        (attribute) => attribute.id !== attributeId
+                        (attribute) => attribute !== removedAttribute
                     ),
                 };
             }
@@ -103,16 +103,16 @@ export default function ParticipantEditor(props: Props) {
                         
                         {/* 属性一覧と削除ボタン */}
                         <div className="mt-2 space-y-2 flex space-x-4">
-                            {participant.attributes.map((attribute) => {
+                            {participant.attributes.map((attribute, index) => {
                                 return (
                                     <div 
-                                        key={attribute.id} 
+                                        key={index} 
                                         className="bg-white p-2 rounded border space-x-4"
                                     >
-                                        <span className="text-blue-500">#{attribute.name}</span>
+                                        <span className="text-blue-500">#{attribute}</span>
                                         <button
                                             type="button"
-                                            onClick={() => removeAttribute(participant.id, attribute.id)}
+                                            onClick={() => removeAttribute(participant.id, attribute)}
                                             className="rounded bg-red-400 px-2 py-1 text-white text-xs"
                                         >
                                             x

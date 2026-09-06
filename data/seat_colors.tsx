@@ -1,4 +1,4 @@
-export const seat_color = [
+export const seat_colors = [
     {
         name : "青",
         color : "blue"

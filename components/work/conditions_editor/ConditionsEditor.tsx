@@ -3,14 +3,16 @@
 import { Condition } from "@/types/main/condition";
 import { Project } from "@/types/main/project";
 import SingleConditionEditor from "./SingleConditionEditor";
+import autoAllocate from "@/lib/autoAllocate";
 
 type Props = {
     project: Project;
     setProject: (project: Project) => void;
+    setTabIndex: (tabIndex: number)=>void;
 };
 
 export default function ConditionEditor(props: Props) {
-    const { project, setProject } = props;
+    const { project, setProject, setTabIndex } = props;
 
     // 条件を追加
     const addCondition = () => {
@@ -108,6 +110,13 @@ export default function ConditionEditor(props: Props) {
                 className="w-full rounded-xl border border-dashed border-blue-300 bg-blue-50/50 py-3 text-sm font-semibold text-blue-600 transition hover:bg-blue-100/50 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
                 ＋ 条件を追加
+            </button>
+            <button
+                type="button"
+                onClick={()=>autoAllocate(project, setProject, setTabIndex)}
+                className="w-full rounded-xl border border-dashed border-blue-300 bg-blue-50/50 py-3 text-sm font-semibold text-blue-600 transition hover:bg-blue-100/50 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            >
+                割り当てを実行
             </button>
         </div>
     );
