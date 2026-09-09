@@ -35,21 +35,18 @@ export default function Work(){
                 <div className="rounded-xl border border-t-0 border-gray-200 bg-white p-4 shadow-lg">
                     {(tabIndex==0) ? (
                         <div>
-                            <h1>作業画面</h1>
                             <SeatMapEditor project={project} setProject={setProject}/>
                         </div>
                     ): null}
                     
                     {(tabIndex==1) ? (
                         <div>
-                            <h1>参加者編集</h1>
                             <ParticipantsEditor project={project} setProject={setProject}/>
                         </div>
                     ): null}
 
                     {(tabIndex==2) ? (
                         <div>
-                            <h1>割り当て自動実行</h1>
                             <ConditionsEditor project={project} setProject={setProject} setTabIndex={setTabIndex}/>
                         </div>
                     ): null}

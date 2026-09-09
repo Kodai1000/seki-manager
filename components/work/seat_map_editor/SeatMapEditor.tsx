@@ -19,20 +19,27 @@ export default function SeatMapEditor (props: Props) {
     const [tool, setTool] = useState<string>("seat");
     const [dragStartPosition, setDragStartPosition] = useState<{x: number, y:number} | null>(null);
     const [dragRect, setDragRect] = useState<{x:number, y:number, width:number, height:number} | null>(null);
-    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [selectedId, setSelectedId] = useState<number | string | null>(null);
     const [selectedType, setSelectedType] = useState<string | null>(null);
+    
+    // 1. Stage用のrefを追加
+    const stageRef = useRef<Konva.Stage | null>(null);
     const shapeRef = useRef<Konva.Transformer | null>(null);
     const trRef = useRef<Konva.Transformer | null>(null);
+
+    // seat_colorsを元にツールリストを動的に生成する
     const tool_list = [
+        ...seat_colors.map((sc) => ({
+            surface_name: `席 (${sc.name})`,
+            object_name: `seat_${sc.color}`,
+            color: sc.color
+        })),
         {
-            "surface_name": "席",
-            "object_name": "seat"
-        },
-        {
-            "surface_name": "テクスト",
-            "object_name": "text"
+            surface_name: "テクスト",
+            object_name: "text",
+            color: null
         }
-    ]
+    ];
 
     useEffect(()=>{
         if (selectedId==null || !shapeRef.current){
@@ -40,6 +47,31 @@ export default function SeatMapEditor (props: Props) {
         }
         trRef.current?.nodes([shapeRef.current]);
     }, [selectedId, selectedType])
+
+    // 画像として保存する関数
+    const handleSaveImage = () => {
+        if (!stageRef.current) return;
+
+        // 一時的にTransformerの選択を解除して綺麗な画像にする
+        const currentNodes = trRef.current?.nodes();
+        trRef.current?.nodes([]);
+
+        // StageをDataURLに変換（PNG形式）
+        const uri = stageRef.current.toDataURL({ pixelRatio: 2 }); // 画質を上げるためにpixelRatioを2に設定（任意）
+
+        // Transformerの選択を復元
+        if (currentNodes && trRef.current) {
+            trRef.current.nodes(currentNodes);
+        }
+
+        // ダウンロード用のリンクを生成してクリック
+        const link = document.createElement("a");
+        link.download = `${props.project.name || "seat-map"}.png`;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     function handleStageMouseDown (e: Konva.KonvaEventObject<MouseEvent>){
         if (e.target !== e.target.getStage()) return;
@@ -50,20 +82,20 @@ export default function SeatMapEditor (props: Props) {
         const stage = e.target.getStage();
         const position = stage.getPointerPosition();
         if (!position) return;
-        if (tool == "seat"){
+        
+        if (tool.startsWith("seat")){
             setDragStartPosition({x: position.x, y:position.y})
         }
         if (tool=="text"){
             const text = window.prompt();
             if (!text) return;
             const prev_project = props.project;
-            const newId = prev_project.objects.length === 0 ? 1 : Math.max(...prev_project.objects.map(seat => seat.id)) + 1;
             setProject({
                 ...prev_project,
                 objects: [
                     ...props.project.objects,
                     {
-                        id: newId,
+                        id: crypto.randomUUID(),
                         text,
                         type: "text",
                         x: position.x,
@@ -84,8 +116,9 @@ export default function SeatMapEditor (props: Props) {
         if (!stage) return;
         const position = stage.getPointerPosition();
         if (!position) return
-        let newDragRect: {x:number,y:number,width:number,height:number} = {x:0,y:0,width:0,height:0};
-        if (tool == "seat"){
+        const newDragRect: {x:number,y:number,width:number,height:number} = {x:0,y:0,width:0,height:0};
+        
+        if (tool.startsWith("seat")){
             if (position.x > dragStartPosition.x){
                 newDragRect.x = dragStartPosition.x;
             }else{
@@ -98,16 +131,21 @@ export default function SeatMapEditor (props: Props) {
             }
             newDragRect.width = Math.abs(position.x-dragStartPosition.x);
             newDragRect.height = Math.abs(position.y-dragStartPosition.y);
-            
         }
         setDragRect(newDragRect);
     }
 
     function handleStageMouseUp (e: Konva.KonvaEventObject<MouseEvent>){
         if (!dragRect) return;
-        if (tool == "seat"){
-            let prev_project = props.project;
+        if (tool.startsWith("seat")){
+            const prev_project = props.project;
             const newId = prev_project.seats.length === 0 ? 1 : Math.max(...prev_project.seats.map(seat => seat.id)) + 1;
+            
+            let defaultColor = seat_colors[0].color;
+            if (tool.includes("_")) {
+                defaultColor = tool.split("_")[1];
+            }
+
             setProject({
                 ...props.project,
                 seats: [
@@ -119,6 +157,7 @@ export default function SeatMapEditor (props: Props) {
                         y: dragRect.y,
                         width: dragRect.width,
                         height: dragRect.height,
+                        color: defaultColor,
                         allocate_ids: [],
                         isDelete: false,
                     }
@@ -196,19 +235,30 @@ export default function SeatMapEditor (props: Props) {
                     <Rect
                         width={SeatObject.width}
                         height={SeatObject.height}
-                        fill={SeatObject.color || "blue"}
+                        fill={SeatObject.color}
                     />
-                    <Text key={`text-${SeatObject.id}`} text={SeatObject.name || "席"+String(SeatObject.id)} fontSize={18}/>
+                    
+                    <Text
+                        key={`text-${SeatObject.id}`}
+                        text={SeatObject.name || "席"+String(SeatObject.id)}
+                        fontSize={16}
+                        width={SeatObject.width}
+                        align="center"
+                        y={10}
+                    />
+
                     <Text 
                         key={`text-${SeatObject.id}-b`} 
-                        y={22} 
                         text={getParticipantData(props.project, SeatObject.allocate_ids[0])?.name || ""} 
-                        fontSize={18}
-                    />                        
+                        fontSize={14}
+                        width={SeatObject.width}
+                        align="center"
+                        y={32}
+                    />                
                 </Group>
             );
     }
-
+    
     function drawObject(object: Object) {
         if (object.isDelete) return null;
         return (
@@ -248,11 +298,9 @@ export default function SeatMapEditor (props: Props) {
         );
     }
 
-    // 選択中のオブジェクトを取得
     const selectedSeat = selectedType === "seat" ? props.project.seats.find(s => s.id === selectedId) : null;
     const selectedObj = selectedType === "text" ? props.project.objects.find(o => o.id === selectedId) : null;
 
-    // 削除処理用ハンドラー
     const handleDelete = () => {
         if (selectedId === null || selectedType === null) return;
 
@@ -268,7 +316,6 @@ export default function SeatMapEditor (props: Props) {
             });
         }
 
-        // 削除後に選択状態をクリア
         setSelectedId(null);
         setSelectedType(null);
         trRef.current?.nodes([]);
@@ -276,6 +323,38 @@ export default function SeatMapEditor (props: Props) {
 
     return (
         <div className="space-y-4 p-4 overflow-auto rounded border border-gray-300 bg-gray-50">
+            {/* 画像保存ボタンなどを配置するヘッダーエリア */}
+            <div className="flex justify-between items-center flex-wrap gap-2">
+                <div className="flex gap-2 flex-wrap">
+                    {
+                        tool_list.map((t)=>{
+                            return (
+                                <button key={`tool-${t.object_name}`}
+                                        onClick={()=>setTool(t.object_name)}
+                                        className={`px-3 py-1 rounded flex items-center gap-1.5 ${tool === t.object_name ? "border bg-blue-900 text-white" : "border bg-blue-100 text-black"}`}
+                                >
+                                    {t.color && (
+                                        <span 
+                                            className="inline-block w-3 h-3 rounded-full border border-gray-400" 
+                                            style={{ backgroundColor: t.color }}
+                                        />
+                                    )}
+                                    {t.surface_name}
+                                </button>
+                            )
+                        })
+                    }
+                </div>
+                
+                {/* 画像保存ボタン */}
+                <button
+                    onClick={handleSaveImage}
+                    className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors flex items-center gap-1.5 shadow"
+                >
+                    画像として保存
+                </button>
+            </div>
+
             <div>
                 {selectedId !== null ? (
                     <div className="p-4 space-y-2 border border-gray-300 bg-white rounded shadow">
@@ -301,7 +380,7 @@ export default function SeatMapEditor (props: Props) {
                                 <div>
                                     <label className="text-xs text-gray-500 block">色</label>
                                     <select 
-                                        value={selectedSeat.color || "blue"}
+                                        value={selectedSeat.color}
                                         onChange={(e) => {
                                             const newColor = e.target.value;
                                             setProject({
@@ -322,7 +401,6 @@ export default function SeatMapEditor (props: Props) {
                                         value={selectedSeat.allocate_ids[0] ?? ""}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // 文字列のidをそのまま配列に格納（空文字の場合は空配列）
                                             const newAllocateIds = value === "" ? [] : [value];
                                             
                                             setProject({
@@ -388,32 +466,19 @@ export default function SeatMapEditor (props: Props) {
                 ) : null}
             </div>
             
-            <div className="flex gap-2">
-                {
-                    tool_list.map((t)=>{
-                        return (
-                            <button key={`tool-${t.object_name}`}
-                                    onClick={()=>setTool(t.object_name)}
-                                    className={`px-3 py-1 rounded ${tool === t.object_name ? "border bg-blue-900 text-white" : "border bg-blue-100 text-black"}`}
-                            >{
-                                    t.surface_name
-                            }</button>
-                        )
-                    })
-                }
-            </div>
-            
+            {/* 2. Stageに ref={stageRef} を設定 */}
             <Stage
+                ref={stageRef}
                 width={1280}
                 height={720}
                 onMouseDown={handleStageMouseDown}
                 onMouseMove={handleStageMouseMove}
                 onMouseUp={handleStageMouseUp}
-                className="border bg-white rounded shadow"
             >
                 <Layer
                     width={1280}
                     height={720}>
+                    <Rect x={0} y={0} width={1280} height={720} fill="white" stroke="#000000" strokeWidth={4} listening={false} />
                     {props.project.seats.map((seat)=>{return drawSeat(seat)})}
                     {props.project.objects.map((object)=>{return drawObject(object)})}
                     {

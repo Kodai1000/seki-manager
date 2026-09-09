@@ -58,83 +58,106 @@ export default function ParticipantEditor(props: Props) {
     };
 
     return (
-        <div>
-            <h1>参加者編集</h1>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-gray-900">
+                    参加者編集
+                </h2>
+                <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                    全 {project.participants.length} 件
+                </span>
+            </div>
 
-            {project.participants.map((participant, index) => {
-                return (
-                    <div
-                        key={participant.id}
-                        className="items-center bg-gray-100 p-2 mb-2 rounded border shadow"
-                    >
-                        <div className="flex flex-row gap-4">
-                            <p>参加者{index}:</p>
-                            <input
-                                type="text"
-                                value={participant.name}
-                                className="rounded border px-2 py-1"
-                                placeholder="名前"
-                                onChange={(e) => {
-                                    const newParticipants = [...project.participants];
-
-                                    newParticipants[index] = {
-                                        ...newParticipants[index],
-                                        name: e.target.value,
-                                    };
-
-                                    setProject({
-                                        ...project,
-                                        participants: newParticipants,
-                                    });
-                                }}
-                            />
-                            
-                            {/* 参加者削除ボタン */}
-                            <button
-                                type="button"
-                                onClick={() => removeParticipant(participant.id)}
-                                className="rounded bg-red-500 px-3 py-1 text-white text-sm ml-auto"
-                            >
-                                削除
-                            </button>
-                        </div>
-                        
-                        <hr className="mt-4 border-gray-300" />
-                        
-                        {/* 属性一覧と削除ボタン */}
-                        <div className="mt-2 space-y-2 flex space-x-4">
-                            {participant.attributes.map((attribute, index) => {
-                                return (
-                                    <div 
-                                        key={index} 
-                                        className="bg-white p-2 rounded border space-x-4"
-                                    >
-                                        <span className="text-blue-500">#{attribute}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeAttribute(participant.id, attribute)}
-                                            className="rounded bg-red-400 px-2 py-1 text-white text-xs"
-                                        >
-                                            x
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <div className="mt-2">
-                            <AttributeAdder project={project} setProject={setProject} participantId={participant.id}/>
-                        </div>
+            {/* 参加者一覧 */}
+            <div className="space-y-4">
+                {project.participants.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50/50 p-8 text-center">
+                        <p className="text-sm text-gray-500">
+                            参加者は設定されていません。下のボタンから追加してください。
+                        </p>
                     </div>
-                );
-            })}
+                ) : (
+                    project.participants.map((participant, index) => {
+                        return (
+                            <div
+                                key={participant.id}
+                                className="rounded border bg-gray-100 p-4 space-y-4 shadow-sm"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="font-bold text-gray-800">
+                                        参加者 {index + 1}
+                                    </span>
+                                    
+                                    {/* 参加者削除ボタン */}
+                                    <button
+                                        type="button"
+                                        onClick={() => removeParticipant(participant.id)}
+                                        className="text-white rounded text-xs font-medium px-2.5 py-1 bg-red-500 hover:bg-red-600 transition"
+                                        title="この参加者を削除"
+                                    >
+                                        削除
+                                    </button>
+                                </div>
+
+                                <input
+                                    type="text"
+                                    value={participant.name}
+                                    className="w-full rounded border bg-white px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    placeholder="参加者名を入力"
+                                    onChange={(e) => {
+                                        const newParticipants = [...project.participants];
+
+                                        newParticipants[index] = {
+                                            ...newParticipants[index],
+                                            name: e.target.value,
+                                        };
+
+                                        setProject({
+                                            ...project,
+                                            participants: newParticipants,
+                                        });
+                                    }}
+                                />
+                                
+                                <hr className="border-gray-300" />
+                                
+                                {/* 属性一覧と削除ボタン */}
+                                <div className="flex flex-wrap gap-2">
+                                    {participant.attributes.map((attribute, attrIndex) => {
+                                        return (
+                                            <div 
+                                                key={attrIndex} 
+                                                className="flex items-center bg-white px-2.5 py-1 rounded border space-x-2 shadow-xs"
+                                            >
+                                                <span className="text-blue-500 text-sm">#{attribute}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeAttribute(participant.id, attribute)}
+                                                    className="rounded bg-red-400 hover:bg-red-500 px-1.5 py-0.5 text-white text-xs transition"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div>
+                                    <AttributeAdder project={project} setProject={setProject} participantId={participant.id}/>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
             
+            {/* 参加者追加ボタン */}
             <button
                 type="button"
                 onClick={addParticipant}
-                className="mt-4 rounded bg-blue-500 px-4 py-2 text-white"
+                className="w-full rounded-xl border border-dashed border-blue-300 bg-blue-50/50 py-3 text-sm font-semibold text-blue-600 transition hover:bg-blue-100/50 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
-                参加者追加
+                ＋ 参加者を追加
             </button>
         </div>
     );
