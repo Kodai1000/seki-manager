@@ -60,11 +60,14 @@ export default function ParticipantEditor(props: Props) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">
-                    参加者編集
-                </h2>
+                <div>
+                    <h2 className="text-lg font-bold">
+                        参加者編集
+                    </h2>
+                    <p>席に割り当てる参加者を設定できます。</p>
+                </div>
                 <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                    全 {project.participants.length} 件
+                    全 {project.participants.length} 人
                 </span>
             </div>
 

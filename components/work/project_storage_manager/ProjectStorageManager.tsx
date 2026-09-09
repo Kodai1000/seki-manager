@@ -1,7 +1,7 @@
 "use client";
 
 import { Project } from "@/types/main/project";
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
 interface ProjectStorageManagerProps {
     project: Project;
@@ -12,37 +12,62 @@ interface SlotStatus {
     [key: number]: boolean;
 }
 
-export default function ProjectStorageManager({ project, setProject }: ProjectStorageManagerProps) {
-    const [message, setMessage] = useState<string>("");
-    // 各スロットにデータが存在するかどうかの状態
-    const [slotStatus, setSlotStatus] = useState<SlotStatus>({});
-
+export default function ProjectStorageManager({
+    project,
+    setProject,
+}: ProjectStorageManagerProps) {
     const getStorageKey = (slot: number) => `seating_app_slot_${slot}`;
 
-    // コンポーネントマウント時および操作時に各スロットのデータ有無をチェック
-    const checkSlots = () => {
+    // 各スロットにデータが存在するかどうかを初期化時に確認
+    const [slotStatus, setSlotStatus] = useState<SlotStatus>(() => {
         const status: SlotStatus = {};
+
         [1, 2, 3, 4, 5].forEach((slot) => {
             const data = localStorage.getItem(getStorageKey(slot));
             status[slot] = !!data;
         });
+
+        return status;
+    });
+
+    const [message, setMessage] = useState<string>("");
+
+    // 各スロットのデータ有無を更新
+    const checkSlots = () => {
+        const status: SlotStatus = {};
+
+        [1, 2, 3, 4, 5].forEach((slot) => {
+            const data = localStorage.getItem(getStorageKey(slot));
+            status[slot] = !!data;
+        });
+
         setSlotStatus(status);
     };
 
-    useEffect(() => {
-        checkSlots();
-    }, []);
+    // メッセージを3秒後に消す
+    const showMessage = (text: string) => {
+        setMessage(text);
+
+        setTimeout(() => {
+            setMessage("");
+        }, 3000);
+    };
 
     // 保存処理
     const handleSave = (slot: number) => {
         try {
-            localStorage.setItem(getStorageKey(slot), JSON.stringify(project));
-            setMessage(`スロット ${slot} にプロジェクトを保存しました！`);
+            localStorage.setItem(
+                getStorageKey(slot),
+                JSON.stringify(project)
+            );
+
+            showMessage(`スロット ${slot} にプロジェクトを保存しました！`);
+
+            // 保存後にスロット状態を更新
             checkSlots();
-            setTimeout(() => setMessage(""), 3000);
         } catch (error) {
             console.error(error);
-            setMessage(`スロット ${slot} の保存に失敗しました。`);
+            showMessage(`スロット ${slot} の保存に失敗しました。`);
         }
     };
 
@@ -50,36 +75,58 @@ export default function ProjectStorageManager({ project, setProject }: ProjectSt
     const handleLoad = (slot: number) => {
         try {
             const savedData = localStorage.getItem(getStorageKey(slot));
+
             if (savedData) {
                 const parsedProject: Project = JSON.parse(savedData);
+
                 setProject(parsedProject);
-                setMessage(`スロット ${slot} からプロジェクトを読み込みました！`);
+                showMessage(
+                    `スロット ${slot} からプロジェクトを読み込みました！`
+                );
             } else {
-                setMessage(`スロット ${slot} には保存されたデータがありません。`);
+                showMessage(
+                    `スロット ${slot} には保存されたデータがありません。`
+                );
             }
-            setTimeout(() => setMessage(""), 3000);
         } catch (error) {
             console.error(error);
-            setMessage("読み込みに失敗しました。データが破損している可能性があります。");
+            showMessage(
+                "読み込みに失敗しました。データが破損している可能性があります。"
+            );
         }
     };
 
     // 削除処理
     const handleClear = (slot: number) => {
-        if (window.confirm(`スロット ${slot} の保存データを削除してもよろしいですか？`)) {
-            localStorage.removeItem(getStorageKey(slot));
-            setMessage(`スロット ${slot} のデータを削除しました。`);
-            checkSlots();
-            setTimeout(() => setMessage(""), 3000);
+        if (
+            window.confirm(
+                `スロット ${slot} の保存データを削除してもよろしいですか？`
+            )
+        ) {
+            try {
+                localStorage.removeItem(getStorageKey(slot));
+
+                showMessage(`スロット ${slot} のデータを削除しました。`);
+
+                // 削除後にスロット状態を更新
+                checkSlots();
+            } catch (error) {
+                console.error(error);
+                showMessage(`スロット ${slot} の削除に失敗しました。`);
+            }
         }
     };
 
     return (
         <div className="space-y-6">
-            <h1 className="text-xl font-bold">プロジェクトの保存・読み込み</h1>
-            <p className="text-sm text-gray-600">
-                各スロットの状態を確認しながら、保存・読み出しを行えます。
-            </p>
+            <div>
+                <h1 className="text-xl font-bold">
+                    プロジェクトの保存・読み込み
+                </h1>
+                <p>
+                    各スロットの状態を確認しながら、保存・読み出しを行えます。
+                </p>
+            </div>
 
             {message && (
                 <div className="p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm">
@@ -87,10 +134,11 @@ export default function ProjectStorageManager({ project, setProject }: ProjectSt
                 </div>
             )}
 
-            {/* スロット一覧のリスト表示 */}
+            {/* スロット一覧 */}
             <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((slot) => {
                     const hasData = slotStatus[slot];
+
                     return (
                         <div
                             key={slot}
@@ -100,6 +148,7 @@ export default function ProjectStorageManager({ project, setProject }: ProjectSt
                                 <span className="font-semibold text-gray-800 w-24">
                                     スロット {slot}
                                 </span>
+
                                 <span
                                     className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                                         hasData
@@ -118,6 +167,7 @@ export default function ProjectStorageManager({ project, setProject }: ProjectSt
                                 >
                                     保存
                                 </button>
+
                                 <button
                                     onClick={() => handleLoad(slot)}
                                     disabled={!hasData}
@@ -129,6 +179,7 @@ export default function ProjectStorageManager({ project, setProject }: ProjectSt
                                 >
                                     読み出し
                                 </button>
+
                                 {hasData && (
                                     <button
                                         onClick={() => handleClear(slot)}
@@ -145,3 +196,4 @@ export default function ProjectStorageManager({ project, setProject }: ProjectSt
         </div>
     );
 }
+

@@ -1,7 +1,6 @@
 "use client";
 
 import { Project } from "@/types/main/project";
-import { Attribute } from "@/types/main/attribute";
 import { useState } from "react";
 
 type Props = {

@@ -52,9 +52,12 @@ export default function ConditionEditor(props: Props) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">
-                    条件設定
-                </h2>
+                <div>
+                    <h2 className="text-lg font-bold">
+                        自動割り当て
+                    </h2>
+                    <p>自動割り当てを行うことができます。制約を設定しない場合は、ランダムで割り当てます。</p>
+                </div>
                 <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
                     全 {project.conditions.length} 件
                 </span>

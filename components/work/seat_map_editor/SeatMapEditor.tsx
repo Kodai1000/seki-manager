@@ -66,7 +66,7 @@ export default function SeatMapEditor (props: Props) {
 
         // ダウンロード用のリンクを生成してクリック
         const link = document.createElement("a");
-        link.download = `${props.project.name || "seat-map"}.png`;
+        link.download = `seat-map.png`;
         link.href = uri;
         document.body.appendChild(link);
         link.click();
@@ -322,7 +322,11 @@ export default function SeatMapEditor (props: Props) {
     };
 
     return (
-        <div className="space-y-4 p-4 overflow-auto rounded border border-gray-300 bg-gray-50">
+        <div className="space-y-4 p-4 overflow-auto bg-gray-100">
+            <div>
+                <h1 className="text-lg font-bold">座席配置図</h1>
+                <p>「席」または「テクスト」を選択し、ドラッグすることで座席配置図を作成できます。</p>
+            </div>
             {/* 画像保存ボタンなどを配置するヘッダーエリア */}
             <div className="flex justify-between items-center flex-wrap gap-2">
                 <div className="flex gap-2 flex-wrap">
