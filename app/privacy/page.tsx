@@ -194,7 +194,7 @@ export default function PrivacyPage() {
 
           <div className="space-y-5 leading-7">
             <p>
-              本プライバシーポリシーに関するお問い合わせは、以下の窓口までご連絡ください。
+              本プライバシーポリシーに関するお問い合わせは、以下のまでご連絡ください。
             </p>
 
             <p className="rounded-lg bg-gray-100 p-4 text-black">
