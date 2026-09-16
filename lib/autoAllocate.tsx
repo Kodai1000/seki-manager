@@ -33,8 +33,10 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
 
     // 座席間の距離を計算するヘルパー
     const getDistance = (seatA: Seat, seatB: Seat): number => {
-        const dx = (seatA).x - (seatB).x;
-        const dy = (seatA).y - (seatB).y;
+        const seatACenter = { x: seatA.x + seatA.width / 2, y: seatA.y + seatA.height / 2 };
+        const seatBCenter = { x: seatB.x + seatB.width / 2, y: seatB.y + seatB.height / 2 };
+        const dx = seatACenter.x - seatBCenter.x;
+        const dy = seatACenter.y - seatBCenter.y;
         return Math.sqrt(dx * dx + dy * dy);
     };
 
