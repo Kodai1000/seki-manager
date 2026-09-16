@@ -9,19 +9,22 @@ export default function HomePage() {
         <h1 className="text-3xl font-bold tracking-tight">
           席決めの面倒を、もっとスムーズに。
         </h1>
+
         <div className="flex justify-center items-center gap-4">
           <Image
-              src="/images/sekimane_icon_seats.svg"
-              alt="席マネ"
-              width={72}
-              height={72}
-              className="inline-block mr-2"  
-            />
-            <h1 className="text-3xl font-bold">席マネ</h1>
-          </div>
+            src="/images/sekimane_icon_seats.svg"
+            alt="席マネ"
+            width={72}
+            height={72}
+            className="inline-block mr-2"
+          />
+          <h1 className="text-3xl font-bold">席マネ</h1>
+        </div>
+
         <p className="text-gray-700">
-          「席マネ」は、直感的な操作と自動割り当て機能で、イベントの座席配置を作成できるWebアプリです。
+          直感的な操作と自動割り当て機能で、小規模イベントの座席配置を作成できるWebアプリ
         </p>
+
         <div>
           <Link
             href="/work"
@@ -29,6 +32,10 @@ export default function HomePage() {
           >
             今すぐ使ってみる
           </Link>
+
+          <p className="mt-3 text-xs text-gray-500">
+            ※現在はドラッグ操作が可能なパソコンでの利用に対応しています。
+          </p>
         </div>
       </div>
 
@@ -68,12 +75,11 @@ export default function HomePage() {
               ローカル保存 & 画像出力
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              データはサーバーに送信されずローカルストレージに保存。PNG画像としてダウンロードできます。
+              座席表データはサーバーのデータベースには保存されず、ローカルストレージに保存。また、PNG画像としてダウンロードできます。
             </p>
           </div>
         </div>
       </div>
-
     </div>
   );
 }
