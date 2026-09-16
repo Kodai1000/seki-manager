@@ -34,6 +34,12 @@ export default function ParticipantEditor(props: Props) {
             participants: project.participants.filter(
                 (participant) => participant.id !== id
             ),
+            seats: project.seats.map((seat) => ({
+                ...seat,
+                allocate_ids: seat.allocate_ids.filter(
+                    (participantId) => participantId !== id
+                ),
+            })),
         });
     };
 
