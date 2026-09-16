@@ -1,3 +1,10 @@
+## 席マネ
+
+小規模イベント向けの座席管理ウェブアプリです。
+座席配置図をドラッグで直感的に作成できるほか、
+参加者の自動割り当て機能を搭載しています。
+距離条件が加えられた自動割り当て機能は、山登り法で実装しています。
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
