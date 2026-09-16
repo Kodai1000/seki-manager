@@ -11,7 +11,7 @@ import ProjectStorageManager from "@/components/work/project_storage_manager/Pro
 export const tabContext = createContext({
     tabIndex: 0,
     setTabIndex: (() => undefined) as Dispatch<SetStateAction<number>>,
-    names: ["座席図", "参加者", "割り当てツール", "プロジェクト保存"],
+    names: ["座席図", "参加者", "自動割り当て", "保存・読み込み"],
 });
 
 export default function Work(){
@@ -29,7 +29,7 @@ export default function Work(){
             <tabContext.Provider value={{
                 tabIndex, 
                 setTabIndex, 
-                names: ["座席図", "参加者", "割り当てツール", "プロジェクト保存"]
+                names: ["座席図", "参加者", "自動割り当て", "保存・読み込み"]
             }}>
                 <TabMenu />
                 <div className="rounded-xl border border-t-0 border-gray-200 bg-white p-4 shadow-lg">
