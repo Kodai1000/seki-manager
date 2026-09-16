@@ -16,11 +16,10 @@ const RESTART_COUNT = 10;
 
 export default function autoAllocate(project: Project, setProject: (project: Project) => void, setTabIndex: (tabIndex: number)=>void): void {
     
-    // ★ 削除されていない座席のみを対象とする
+    // 座席と参加者のidの重複しない配列を作成
     const seatIds = Array.from(
         new Set(project.seats.map((seat)=>seat.id))
     );
-
     const participantIds = Array.from(
         new Set(project.participants.map((participant) => participant.id))
     );
@@ -35,7 +34,7 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         return Math.sqrt(dx * dx + dy * dy);
     };
 
-    // オブジェクト（参加者 or 属性）に該当する参加者リストを取得
+    // 特定の参加者または属性（オブジェクト）に該当する参加者リストを取得
     const getParticipantsByObject = (obj: {
         type: "participant" | "attribute" | null;
         ref: string;
@@ -311,7 +310,7 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         (c) => c.type >= 2 && c.type <= 5
     );
 
-    console.log(project.conditions);
+    //メイン
 
     let bestAllocates: Allocate[] = [];
     let bestScore = -Infinity;
