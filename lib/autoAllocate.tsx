@@ -15,21 +15,16 @@ const MAX_NO_IMPROVEMENT = 2000;
 const RESTART_COUNT = 10;
 
 export default function autoAllocate(project: Project, setProject: (project: Project) => void, setTabIndex: (tabIndex: number)=>void): void {
-    console.log("autoAllocate!");
     
     // ★ 削除されていない座席のみを対象とする
     const seatIds = Array.from(
-        new Set(project.seats.filter((seat) => !seat.isDelete).map((seat) => seat.id))
+        new Set(project.seats.map((seat)=>seat.id))
     );
 
     const participantIds = Array.from(
         new Set(project.participants.map((participant) => participant.id))
     );
 
-    if (participantIds.length > seatIds.length) {
-        console.log("error!");
-        return;
-    }
 
     // 座席間の距離を計算するヘルパー
     const getDistance = (seatA: Seat, seatB: Seat): number => {
@@ -59,9 +54,6 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
 
     // ある参加者が、ある座席の色条件（条件1）を満たすかどうか
     function isColorAllowed(participant: Participant, seat: Seat): boolean {
-        // 削除済み座席はそもそも許可しない
-        if (seat.isDelete) return false;
-
         for (const condition of project.conditions) {
             if (condition.type === 1) {
                 if (condition.objectA.type === "participant") {
@@ -87,7 +79,7 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         for (const allocate of currentAllocates) {
             const participant = getParticipantData(project, allocate.participantId);
             const seat = getSeatData(project, allocate.seatId);
-            if (typeof participant === "undefined" || typeof seat === "undefined" || seat.isDelete) {
+            if (typeof participant === "undefined" || typeof seat === "undefined") {
                 return false;
             }
             if (!isColorAllowed(participant, seat)) {
@@ -104,7 +96,7 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         const seatMap = new Map<string, Seat>();
         for (const allocate of currentAllocates) {
             const seat = getSeatData(project, allocate.seatId);
-            if (typeof seat === "undefined" || seat.isDelete) {
+            if (typeof seat === "undefined") {
                 return -Infinity;
             }
             seatMap.set(allocate.participantId, seat);
@@ -214,7 +206,7 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         for (const item of shuffledConstrained) {
             const seatIndex = availableSeatIds.findIndex((seatId) => {
                 const seat = getSeatData(project, seatId);
-                if (seat === undefined || seat.isDelete) return false;
+                if (seat === undefined) return false;
                 return item.allowedColors.has(seat.color);
             });
 
@@ -236,7 +228,7 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
             if (availableSeatIds.length > 0) {
                 let seatIndex = availableSeatIds.findIndex((seatId) => {
                     const seat = getSeatData(project, seatId);
-                    if (seat === undefined || seat.isDelete) return false;
+                    if (seat === undefined) return false;
                     return isColorAllowed(participant, seat);
                 });
 
@@ -276,12 +268,8 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
                 continue;
             }
             const seatIObj = getSeatData(project, current[i].seatId);
-            if (typeof seatIObj === "undefined" || seatIObj.isDelete) {
+            if (typeof seatIObj === "undefined") {
                 continue;
-            }
-            
-            if (!isColorAllowed(participantI, seatIObj) && Math.random() < 0.7) {
-                // 違反者を優先的に動かす
             }
 
             let j = Math.floor(Math.random() * current.length);
@@ -315,16 +303,25 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         return { allocates: current, score: currentScore, passed: currentPassed };
     }
 
-    // 判定：制約条件に距離（タイプ2〜5）が含まれているか確認
+    // 判定：制約条件が存在するか
+    const hasColorConditions = project.conditions.some(
+        (c) => c.type==1
+    );
     const hasDistanceConditions = project.conditions.some(
         (c) => c.type >= 2 && c.type <= 5
     );
+
+    console.log(project.conditions);
 
     let bestAllocates: Allocate[] = [];
     let bestScore = -Infinity;
     let bestPassed = false;
 
-    if (!hasDistanceConditions) {
+    if (!hasColorConditions && !hasDistanceConditions){
+        //条件がない場合
+        bestAllocates = generateInitialAllocation();
+        bestPassed = true;
+    }else if (!hasDistanceConditions) {
         // --- 距離の条件が含まれていない場合 ---
         console.log("No distance conditions found. Using random allocation based on attributes and colors.");
         
@@ -369,14 +366,6 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
 
     // 結果を各座席の allocate_ids に反映
     const updatedSeats = project.seats.map((seat) => {
-        // ★ 削除されている座席はアサインをクリア（または空にする）
-        if (seat.isDelete) {
-            return {
-                ...seat,
-                allocate_ids: [],
-            };
-        }
-
         const assignedParticipants = bestAllocates
             .filter((allocate) => allocate.seatId === seat.id)
             .map((allocate) => allocate.participantId);

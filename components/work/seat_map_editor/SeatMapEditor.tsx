@@ -1,5 +1,4 @@
 "use client"
-import Image from "next/image";
 import { Stage, Layer, Rect, Group, Transformer, Text } from "react-konva";
 import Konva from "konva";
 import { Project } from "@/types/main/project";
@@ -22,9 +21,9 @@ export default function SeatMapEditor (props: Props) {
     const [selectedId, setSelectedId] = useState<number | string | null>(null);
     const [selectedType, setSelectedType] = useState<string | null>(null);
     
-    // 1. Stage用のrefを追加
+    // Stage用のref
     const stageRef = useRef<Konva.Stage | null>(null);
-    const shapeRef = useRef<Konva.Transformer | null>(null);
+    const shapeRef = useRef<Konva.Group | null>(null);
     const trRef = useRef<Konva.Transformer | null>(null);
 
     // seat_colorsを元にツールリストを動的に生成する
@@ -42,11 +41,50 @@ export default function SeatMapEditor (props: Props) {
     ];
 
     useEffect(()=>{
-        if (selectedId==null || !shapeRef.current){
+        if (selectedId == null || !shapeRef.current){
             return;
         }
         trRef.current?.nodes([shapeRef.current]);
     }, [selectedId, selectedType])
+
+    // 指定IDの席を削除する関数
+    const handleDeleteSeat = (seatId: number) => {
+        setProject({
+            ...props.project,
+            seats: props.project.seats.filter((seat)=>seat.id !== seatId)
+        });
+
+        if (selectedId === seatId && selectedType === "seat") {
+            setSelectedId(null);
+            setSelectedType(null);
+            trRef.current?.nodes([]);
+        }
+    };
+
+    // 指定IDのテキストオブジェクトを削除する関数
+    const handleDeleteText = (textId: string | number) => {
+        setProject({
+            ...props.project,
+            objects: props.project.objects.filter((object)=>object.id !== textId)
+        });
+
+        if (selectedId === textId && selectedType === "text") {
+            setSelectedId(null);
+            setSelectedType(null);
+            trRef.current?.nodes([]);
+        }
+    };
+
+    // 現在選択中の座席または要素を削除する関数
+    const handleDeleteSelectedElement = () => {
+        if (selectedId === null || selectedType === null) return;
+
+        if (selectedType === "seat" && typeof selectedId === "number") {
+            handleDeleteSeat(selectedId);
+        } else if (selectedType === "text") {
+            handleDeleteText(selectedId);
+        }
+    };
 
     // 画像として保存する関数
     const handleSaveImage = () => {
@@ -57,7 +95,7 @@ export default function SeatMapEditor (props: Props) {
         trRef.current?.nodes([]);
 
         // StageをDataURLに変換（PNG形式）
-        const uri = stageRef.current.toDataURL({ pixelRatio: 2 }); // 画質を上げるためにpixelRatioを2に設定（任意）
+        const uri = stageRef.current.toDataURL({ pixelRatio: 2 });
 
         // Transformerの選択を復元
         if (currentNodes && trRef.current) {
@@ -103,7 +141,6 @@ export default function SeatMapEditor (props: Props) {
                         font_size: 16,
                         width: null,
                         height: null,
-                        isDelete: false,
                     }
                 ]
             })
@@ -159,7 +196,6 @@ export default function SeatMapEditor (props: Props) {
                         height: dragRect.height,
                         color: defaultColor,
                         allocate_ids: [],
-                        isDelete: false,
                     }
                 ]
             });
@@ -169,98 +205,96 @@ export default function SeatMapEditor (props: Props) {
     }
     
     function drawSeat (SeatObject: Seat){
-        if (SeatObject.isDelete) return null;
-            return (
-                <Group key={`seat-${SeatObject.id}`}
-                        x={SeatObject.x}
-                        y={SeatObject.y}
-                        width={SeatObject.width}
-                        height={SeatObject.height}
-                        draggable
-                        ref={selectedId === SeatObject.id && selectedType === "seat" ? shapeRef : null}
-                        onDragEnd={(e) => {
-                            const node = e.target;
-                            const newX = node.x();
-                            const newY = node.y();
-                            const scaleX = node.scaleX();
-                            const scaleY = node.scaleY();
-                            node.scaleX(1);
-                            node.scaleY(1);
-                            setProject({
-                                ...props.project,
-                                seats: props.project.seats.map((seat) => {
-                                    if (seat.id !== SeatObject.id) {
-                                        return seat;
-                                    }
-                                    return {
-                                        ...seat,
-                                        x: newX,
-                                        y: newY,
-                                        width: seat.width * scaleX,
-                                        height: seat.height * scaleY
-                                    };
-                                }),
-                            });
-                        }}
-                        onTransformEnd={(e) => {
-                            const node = e.target;
-                            const newX = node.x();
-                            const newY = node.y();
-                            const scaleX = node.scaleX();
-                            const scaleY = node.scaleY();
-                            node.scaleX(1);
-                            node.scaleY(1);
-                            setProject({
-                                ...props.project,
-                                seats: props.project.seats.map((seat) => {
-                                    if (seat.id !== SeatObject.id) {
-                                        return seat;
-                                    }
-                                    return {
-                                        ...seat,
-                                        x: newX,
-                                        y: newY,
-                                        width: seat.width * scaleX,
-                                        height: seat.height * scaleY
-                                    };
-                                }),
-                            });
-                        }}
-                        onClick={(e)=>{
-                            setSelectedId(SeatObject.id);
-                            setSelectedType("seat");
-                            trRef.current?.nodes([e.currentTarget]);
-                        }}
-                >
-                    <Rect
-                        width={SeatObject.width}
-                        height={SeatObject.height}
-                        fill={SeatObject.color}
-                    />
-                    
-                    <Text
-                        key={`text-${SeatObject.id}`}
-                        text={SeatObject.name || "席"+String(SeatObject.id)}
-                        fontSize={16}
-                        width={SeatObject.width}
-                        align="center"
-                        y={10}
-                    />
+        return (
+            <Group key={`seat-${SeatObject.id}`}
+                   x={SeatObject.x}
+                   y={SeatObject.y}
+                   width={SeatObject.width}
+                   height={SeatObject.height}
+                   draggable
+                   ref={selectedId === SeatObject.id && selectedType === "seat" ? shapeRef : null}
+                   onDragEnd={(e) => {
+                       const node = e.target;
+                       const newX = node.x();
+                       const newY = node.y();
+                       const scaleX = node.scaleX();
+                       const scaleY = node.scaleY();
+                       node.scaleX(1);
+                       node.scaleY(1);
+                       setProject({
+                           ...props.project,
+                           seats: props.project.seats.map((seat) => {
+                               if (seat.id !== SeatObject.id) {
+                                   return seat;
+                               }
+                               return {
+                                   ...seat,
+                                   x: newX,
+                                   y: newY,
+                                   width: seat.width * scaleX,
+                                   height: seat.height * scaleY
+                               };
+                           }),
+                       });
+                   }}
+                   onTransformEnd={(e) => {
+                       const node = e.target;
+                       const newX = node.x();
+                       const newY = node.y();
+                       const scaleX = node.scaleX();
+                       const scaleY = node.scaleY();
+                       node.scaleX(1);
+                       node.scaleY(1);
+                       setProject({
+                           ...props.project,
+                           seats: props.project.seats.map((seat) => {
+                               if (seat.id !== SeatObject.id) {
+                                   return seat;
+                               }
+                               return {
+                                   ...seat,
+                                   x: newX,
+                                   y: newY,
+                                   width: seat.width * scaleX,
+                                   height: seat.height * scaleY
+                               };
+                           }),
+                       });
+                   }}
+                   onClick={(e)=>{
+                       setSelectedId(SeatObject.id);
+                       setSelectedType("seat");
+                       trRef.current?.nodes([e.currentTarget]);
+                   }}
+            >
+                <Rect
+                    width={SeatObject.width}
+                    height={SeatObject.height}
+                    fill={SeatObject.color}
+                />
+                
+                <Text
+                    key={`text-${SeatObject.id}`}
+                    text={SeatObject.name || "席"+String(SeatObject.id)}
+                    fontSize={16}
+                    width={SeatObject.width}
+                    align="center"
+                    y={10}
+                />
 
-                    <Text 
-                        key={`text-${SeatObject.id}-b`} 
-                        text={getParticipantData(props.project, SeatObject.allocate_ids[0])?.name || ""} 
-                        fontSize={14}
-                        width={SeatObject.width}
-                        align="center"
-                        y={32}
-                    />                
-                </Group>
-            );
+                <Text 
+                    key={`text-${SeatObject.id}-b`} 
+                    text={getParticipantData(props.project, SeatObject.allocate_ids[0])?.name || ""} 
+                    fontSize={14}
+                    width={SeatObject.width}
+                    align="center"
+                    y={32}
+                />                
+            </Group>
+        );
     }
     
     function drawObject(object: Object) {
-        if (object.isDelete) return null;
         return (
             <Group
                 key={`object-${object.id}`}
@@ -301,33 +335,14 @@ export default function SeatMapEditor (props: Props) {
     const selectedSeat = selectedType === "seat" ? props.project.seats.find(s => s.id === selectedId) : null;
     const selectedObj = selectedType === "text" ? props.project.objects.find(o => o.id === selectedId) : null;
 
-    const handleDelete = () => {
-        if (selectedId === null || selectedType === null) return;
-
-        if (selectedType === "seat") {
-            setProject({
-                ...props.project,
-                seats: props.project.seats.map(s => s.id === selectedId ? { ...s, isDelete: true } : s)
-            });
-        } else if (selectedType === "text") {
-            setProject({
-                ...props.project,
-                objects: props.project.objects.map(o => o.id === selectedId ? { ...o, isDelete: true } : o)
-            });
-        }
-
-        setSelectedId(null);
-        setSelectedType(null);
-        trRef.current?.nodes([]);
-    };
-
     return (
         <div className="space-y-4 p-4 overflow-auto bg-gray-100">
             <div>
                 <h1 className="text-lg font-bold">座席配置図</h1>
                 <p>「席」または「テクスト」を選択し、ドラッグすることで座席配置図を作成できます。</p>
             </div>
-            {/* 画像保存ボタンなどを配置するヘッダーエリア */}
+
+            {/* ツールセレクター & 画像保存ボタン */}
             <div className="flex justify-between items-center flex-wrap gap-2">
                 <div className="flex gap-2 flex-wrap">
                     {
@@ -350,7 +365,6 @@ export default function SeatMapEditor (props: Props) {
                     }
                 </div>
                 
-                {/* 画像保存ボタン */}
                 <button
                     onClick={handleSaveImage}
                     className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors flex items-center gap-1.5 shadow"
@@ -359,8 +373,9 @@ export default function SeatMapEditor (props: Props) {
                 </button>
             </div>
 
+            {/* 選択アイテムの編集フォーム */}
             <div>
-                {selectedId !== null ? (
+                {selectedId !== null && (
                     <div className="p-4 space-y-2 border border-gray-300 bg-white rounded shadow">
                         <p className="font-bold text-sm text-gray-700">色・名称編集フォーム</p>
                         
@@ -430,7 +445,7 @@ export default function SeatMapEditor (props: Props) {
                                 </div>
                                 <div className="ml-auto self-end">
                                     <button 
-                                        onClick={handleDelete}
+                                        onClick={handleDeleteSelectedElement}
                                         className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
                                     >
                                         削除
@@ -440,7 +455,7 @@ export default function SeatMapEditor (props: Props) {
                         )}
 
                         {selectedType === "text" && selectedObj && (
-                            <div className="space-y-2">
+                            <div className="flex gap-4 items-center flex-wrap">
                                 <div>
                                     <label className="text-xs text-gray-500 block">テキスト内容</label>
                                     <input 
@@ -453,12 +468,12 @@ export default function SeatMapEditor (props: Props) {
                                                 objects: props.project.objects.map(o => o.id === selectedObj.id ? {...o, text: newText} : o)
                                             });
                                         }}
-                                        className="border px-2 py-1 rounded text-sm w-full"
+                                        className="border px-2 py-1 rounded text-sm"
                                     />
                                 </div>
-                                <div className="flex justify-end">
+                                <div className="ml-auto self-end">
                                     <button 
-                                        onClick={handleDelete}
+                                        onClick={handleDeleteSelectedElement}
                                         className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition-colors"
                                     >
                                         削除
@@ -467,32 +482,91 @@ export default function SeatMapEditor (props: Props) {
                             </div>
                         )}
                     </div>
-                ) : null}
+                )}
             </div>
-            
-            {/* 2. Stageに ref={stageRef} を設定 */}
-            <Stage
-                ref={stageRef}
-                width={1280}
-                height={720}
-                onMouseDown={handleStageMouseDown}
-                onMouseMove={handleStageMouseMove}
-                onMouseUp={handleStageMouseUp}
-            >
-                <Layer
+
+            {/* Konva Stage エリア */}
+            <div className="border border-gray-300 bg-white rounded shadow inline-block">
+                <Stage
                     width={1280}
-                    height={720}>
-                    <Rect x={0} y={0} width={1280} height={720} fill="white" stroke="#000000" strokeWidth={4} listening={false} />
-                    {props.project.seats.map((seat)=>{return drawSeat(seat)})}
-                    {props.project.objects.map((object)=>{return drawObject(object)})}
-                    {
-                        (dragRect != null) ? (
-                            <Rect x={dragRect.x} y={dragRect.y} width={dragRect.width} height={dragRect.height} stroke="blue"/>
-                        ) : null
-                    }
-                    <Transformer ref={trRef}/>
-                </Layer>
-            </Stage>
+                    height={720}
+                    ref={stageRef}
+                    onMouseDown={handleStageMouseDown}
+                    onMouseMove={handleStageMouseMove}
+                    onMouseUp={handleStageMouseUp}
+                >
+                    <Layer>
+                        <Rect x={0} y={0} width={1280} height={720} fill="white" stroke="#000000" strokeWidth={4} listening={false} />
+                        {props.project.seats.map((seat) => drawSeat(seat))}
+                        {props.project.objects.map((obj) => drawObject(obj))}
+                        
+                        {/* ドロワー範囲プレビュー */}
+                        {dragRect && (
+                            <Rect
+                                x={dragRect.x}
+                                y={dragRect.y}
+                                width={dragRect.width}
+                                height={dragRect.height}
+                                stroke="blue"
+                            />
+                        )}
+
+                        <Transformer ref={trRef} />
+                    </Layer>
+                </Stage>
+            </div>
+
+            {/* 席一覧セクション */}
+            <div className="p-4 border border-gray-300 bg-white rounded shadow space-y-3">
+                <h2 className="font-bold text-md text-gray-800">席一覧 ({props.project.seats.length}件)</h2>
+                {props.project.seats.length === 0 ? (
+                    <p className="text-sm text-gray-500 py-2">配置された席はありません。</p>
+                ) : (
+                    <div className="divide-y divide-gray-200 border-t border-b border-gray-200 max-h-60 overflow-y-auto">
+                        {props.project.seats.map((seat) => {
+                            const participant = getParticipantData(props.project, seat.allocate_ids[0]);
+                            const isSelected = selectedId === seat.id && selectedType === "seat";
+                            return (
+                                <div 
+                                    key={`seat-list-item-${seat.id}`}
+                                    className={`flex items-center justify-between py-2 px-2 transition-colors ${isSelected ? "bg-blue-50" : "hover:bg-gray-50"}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span 
+                                            className="inline-block w-3.5 h-3.5 rounded-full border border-gray-400"
+                                            style={{ backgroundColor: seat.color }}
+                                        />
+                                        <span className="font-medium text-sm text-gray-800">
+                                            {seat.name || `席 ${seat.id}`}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            {participant ? `(割当: ${participant.name})` : "(未割り当て)"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedId(seat.id);
+                                                setSelectedType("seat");
+                                            }}
+                                            className="px-2.5 py-1 text-xs border border-gray-300 rounded text-gray-700 bg-white hover:bg-gray-100 transition-colors"
+                                        >
+                                            選択
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteSeat(seat.id)}
+                                            className="px-2.5 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                        >
+                                            削除
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
-    )
+    );
 }

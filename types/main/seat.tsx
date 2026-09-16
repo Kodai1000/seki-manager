@@ -5,7 +5,6 @@ export type Seat = {
     y: number,
     width: number,
     height: number,
-    isDelete: boolean,
     allocate_ids: string[],
     color: string,
 }
