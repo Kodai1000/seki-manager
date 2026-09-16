@@ -30,7 +30,7 @@ export default function PrivacyPage() {
             </p>
 
             <p>
-              利用者が本サービスに入力したデータは、原則として利用者の端末上のブラウザのローカルストレージ（localStorage）に保存されます。
+              利用者が本サービスに入力したデータは、任意で利用者の端末上のブラウザのローカルストレージ（localStorage）に保存することができます。
             </p>
           </div>
         </section>
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
 
           <ol className="list-decimal space-y-4 pl-6 leading-7">
             <li>
-              本サービスにおいて利用者が入力した座席配置、参加者情報、割り当て条件その他のデータは、原則として利用者の端末上のブラウザのローカルストレージ（localStorage）に保存されます。
+              本サービスにおいて利用者が入力した座席配置、参加者情報、割り当て条件その他のデータは、任意で利用者の端末上のブラウザのローカルストレージ（localStorage）に保存できます。
             </li>
 
             <li>
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
 
           <ol className="list-decimal space-y-4 pl-6 leading-7">
             <li>
-              本サービスでは、利用者が入力したデータをブラウザのローカルストレージに保存します。
+              本サービスでは、利用者が入力したデータをブラウザのローカルストレージに保存できます。
             </li>
 
             <li>
