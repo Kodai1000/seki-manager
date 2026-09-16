@@ -13,6 +13,9 @@ type Props = {
     setProject: (objects: Project) => void;
 }
 
+const MIN_SEAT_WIDTH = 24;
+const MIN_SEAT_HEIGHT = 24;
+
 export default function SeatMapEditor (props: Props) {
     const setProject = props.setProject;
     const [tool, setTool] = useState<string>("seat");
@@ -153,28 +156,38 @@ export default function SeatMapEditor (props: Props) {
         if (!stage) return;
         const position = stage.getPointerPosition();
         if (!position) return
-        const newDragRect: {x:number,y:number,width:number,height:number} = {x:0,y:0,width:0,height:0};
-        
-        if (tool.startsWith("seat")){
-            if (position.x > dragStartPosition.x){
-                newDragRect.x = dragStartPosition.x;
-            }else{
-                newDragRect.x = position.x
-            }
-            if (position.y > dragStartPosition.y){
-                newDragRect.y = dragStartPosition.y;
-            }else{
-                newDragRect.y = position.y;
-            }
-            newDragRect.width = Math.abs(position.x-dragStartPosition.x);
-            newDragRect.height = Math.abs(position.y-dragStartPosition.y);
-        }
-        setDragRect(newDragRect);
+        setDragRect({
+            x: Math.min(dragStartPosition.x, position.x),
+            y: Math.min(dragStartPosition.y, position.y),
+            width: Math.abs(position.x - dragStartPosition.x),
+            height: Math.abs(position.y - dragStartPosition.y),
+        });
     }
 
     function handleStageMouseUp (e: Konva.KonvaEventObject<MouseEvent>){
-        if (!dragRect) return;
-        if (tool.startsWith("seat")){
+        const stage = e.target.getStage();
+        const position = stage?.getPointerPosition();
+        const startPosition = dragStartPosition;
+
+        // 短いドラッグやクリックの後にも作成開始状態を残さない
+        setDragRect(null);
+        setDragStartPosition(null);
+
+        if (tool.startsWith("seat") && startPosition && position){
+            const completedDragRect = {
+                x: Math.min(startPosition.x, position.x),
+                y: Math.min(startPosition.y, position.y),
+                width: Math.abs(position.x - startPosition.x),
+                height: Math.abs(position.y - startPosition.y),
+            };
+
+            if (
+                completedDragRect.width < MIN_SEAT_WIDTH ||
+                completedDragRect.height < MIN_SEAT_HEIGHT
+            ) {
+                return;
+            }
+
             const prev_project = props.project;
             const newId = prev_project.seats.length === 0 ? 1 : Math.max(...prev_project.seats.map(seat => seat.id)) + 1;
             
@@ -190,17 +203,15 @@ export default function SeatMapEditor (props: Props) {
                     {
                         id: newId,
                         name: newId.toString(),
-                        x: dragRect.x,
-                        y: dragRect.y,
-                        width: dragRect.width,
-                        height: dragRect.height,
+                        x: completedDragRect.x,
+                        y: completedDragRect.y,
+                        width: completedDragRect.width,
+                        height: completedDragRect.height,
                         color: defaultColor,
                         allocate_ids: [],
                     }
                 ]
             });
-            setDragRect(null);
-            setDragStartPosition(null);
         }
     }
     
@@ -323,10 +334,39 @@ export default function SeatMapEditor (props: Props) {
                         }),
                     });
                 }}
+                onTransformEnd={(e) => {
+                    const node = e.currentTarget;
+                    const scaleX = Math.abs(node.scaleX());
+                    const scaleY = Math.abs(node.scaleY());
+                    const baseWidth = object.width ?? node.width();
+                    const baseHeight = object.height ?? node.height();
+
+                    node.scaleX(1);
+                    node.scaleY(1);
+
+                    setProject({
+                        ...props.project,
+                        objects: props.project.objects.map((obj) => {
+                            if (obj.id !== object.id) {
+                                return obj;
+                            }
+                            return {
+                                ...obj,
+                                x: node.x(),
+                                y: node.y(),
+                                font_size: Math.max(1, object.font_size * scaleY),
+                                width: baseWidth * scaleX,
+                                height: baseHeight * scaleY,
+                            };
+                        }),
+                    });
+                }}
             >
                 <Text
                     text={object.text}
                     fontSize={object.font_size}
+                    width={object.width ?? undefined}
+                    height={object.height ?? undefined}
                 />
             </Group>
         );
