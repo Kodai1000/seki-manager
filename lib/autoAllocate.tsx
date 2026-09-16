@@ -322,8 +322,6 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         bestPassed = true;
     }else if (!hasDistanceConditions) {
         // --- 距離の条件が含まれていない場合 ---
-        console.log("No distance conditions found. Using random allocation based on attributes and colors.");
-        
         for (let restart = 0; restart < RESTART_COUNT; restart++) {
             const initial = generateInitialAllocation();
             const passed = isPassed(initial);
@@ -355,12 +353,15 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
                 }
             }
         }
-        console.log("bestScore:", bestScore);
     }
 
     // ハード制約を満たすことができなかった場合の警告表示
-    if (!bestPassed) {
-        console.warn("ハード制約を満たす割り当てを実行できませんでした");
+    const isAllocationComplete =
+        bestAllocates.length === participantIds.length &&
+        new Set(bestAllocates.map((allocate) => allocate.participantId)).size === participantIds.length;
+
+    if (!bestPassed || !isAllocationComplete) {
+        window.alert("制約を満たす割り当てができませんでした。もう一度やりなおすか、制約を変更してください");
     }
 
     // 結果を各座席の allocate_ids に反映
@@ -375,12 +376,9 @@ export default function autoAllocate(project: Project, setProject: (project: Pro
         };
     });
 
-    console.log(updatedSeats);
-
     setProject({
         ...project,
         seats: updatedSeats,
     });
     setTabIndex(0);
-    console.log("complete!");
 }
