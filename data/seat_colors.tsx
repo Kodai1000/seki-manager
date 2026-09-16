@@ -16,14 +16,6 @@ export const seat_colors = [
         color: "#d8b4fe" // bg-purple-300 相当
     },
     {
-        name: "ピンク",
-        color: "#f472b6" // bg-pink-300 相当（少し調整）
-    },
-    {
-        name: "黄緑",
-        color: "#6ee7b7" // bg-emerald-300 相当
-    },
-    {
         name: "インディゴ",
         color: "#a5b4fc" // bg-indigo-300 相当
     },
