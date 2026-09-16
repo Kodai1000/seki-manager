@@ -75,7 +75,7 @@ export default function HomePage() {
               ローカル保存 & 画像出力
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              座席表データはサーバーのデータベースには保存されず、ローカルストレージに保存。また、PNG画像としてダウンロードできます。
+              座席表データはサーバーのデータベースには保存されず、ローカルストレージに保存できます。また、PNG画像としてダウンロードできます。
             </p>
           </div>
         </div>
