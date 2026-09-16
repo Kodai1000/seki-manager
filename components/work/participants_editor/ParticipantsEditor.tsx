@@ -132,7 +132,7 @@ export default function ParticipantEditor(props: Props) {
                                                 key={attrIndex} 
                                                 className="flex items-center bg-white px-2.5 py-1 rounded border space-x-2 shadow-xs"
                                             >
-                                                <span className="text-blue-500 text-sm">#{attribute}</span>
+                                                <span className="text-blue-500 text-sm">{attribute}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => removeAttribute(participant.id, attribute)}
