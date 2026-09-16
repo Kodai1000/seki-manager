@@ -40,7 +40,7 @@ export default function RootLayout({
 
           <footer className="border-t border-gray-200 bg-white">
             <div className="mx-auto w-full max-w-7xl px-6 py-3 text-sm text-gray-500">
-              <Link href="/privacy">プライバシーポリシー</Link>
+              <Link href="/privacy" target="_blank">プライバシーポリシー</Link>
             </div>
           </footer>
         </div>
