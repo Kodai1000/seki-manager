@@ -127,12 +127,12 @@ export default function SeatMapEditor (props: Props) {
         if (tool.startsWith("seat")){
             setDragStartPosition({x: position.x, y:position.y})
         }
-        if (tool=="text"){
+        if (tool === "text") {
             const text = window.prompt();
             if (!text) return;
-            const prev_project = props.project;
+
             setProject({
-                ...prev_project,
+                ...props.project,
                 objects: [
                     ...props.project.objects,
                     {
@@ -144,9 +144,11 @@ export default function SeatMapEditor (props: Props) {
                         font_size: 16,
                         width: null,
                         height: null,
+                        scale_x: 1,
+                        scale_y: 1,
                     }
                 ]
-            })
+            });
         }
     }
 
@@ -181,10 +183,7 @@ export default function SeatMapEditor (props: Props) {
                 height: Math.abs(position.y - startPosition.y),
             };
 
-            if (
-                completedDragRect.width < MIN_SEAT_WIDTH ||
-                completedDragRect.height < MIN_SEAT_HEIGHT
-            ) {
+            if (completedDragRect.width < MIN_SEAT_WIDTH || completedDragRect.height < MIN_SEAT_HEIGHT) {
                 return;
             }
 
@@ -311,6 +310,8 @@ export default function SeatMapEditor (props: Props) {
                 key={`object-${object.id}`}
                 x={object.x}
                 y={object.y}
+                scaleX={object.scale_x ?? 1}
+                scaleY={object.scale_y ?? 1}
                 draggable
                 ref={selectedId === object.id && selectedType === "text" ? shapeRef : null}
                 onClick={(e) => {
@@ -336,13 +337,6 @@ export default function SeatMapEditor (props: Props) {
                 }}
                 onTransformEnd={(e) => {
                     const node = e.currentTarget;
-                    const scaleX = Math.abs(node.scaleX());
-                    const scaleY = Math.abs(node.scaleY());
-                    const baseWidth = object.width ?? node.width();
-                    const baseHeight = object.height ?? node.height();
-
-                    node.scaleX(1);
-                    node.scaleY(1);
 
                     setProject({
                         ...props.project,
@@ -354,9 +348,8 @@ export default function SeatMapEditor (props: Props) {
                                 ...obj,
                                 x: node.x(),
                                 y: node.y(),
-                                font_size: Math.max(1, object.font_size * scaleY),
-                                width: baseWidth * scaleX,
-                                height: baseHeight * scaleY,
+                                scale_x: node.scaleX(),
+                                scale_y: node.scaleY(),
                             };
                         }),
                     });
@@ -365,8 +358,6 @@ export default function SeatMapEditor (props: Props) {
                 <Text
                     text={object.text}
                     fontSize={object.font_size}
-                    width={object.width ?? undefined}
-                    height={object.height ?? undefined}
                 />
             </Group>
         );

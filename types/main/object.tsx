@@ -7,4 +7,6 @@ export type Object = {
     width: number |null,
     height: number | null,
     font_size: number,
+    scale_x?: number,
+    scale_y?: number,
 }
