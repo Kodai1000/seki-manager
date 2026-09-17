@@ -3,9 +3,9 @@ import Image from "next/image";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col items-center py-6 bg-white rounded">
+    <div className="flex flex-col items-center px-3 py-6 bg-white rounded">
       {/* ヒーローセクション */}
-      <div className="w-full max-w-3xl text-center space-y-2 mb-16 p-2 space-y-8 rounded-xl">
+      <div className="w-full max-w-3xl text-center mb-16 space-y-8 rounded-xl">
         <h1 className="text-3xl font-bold tracking-tight">
           席決めの面倒を、もっとスムーズに。
         </h1>
